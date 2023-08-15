@@ -2,10 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply overflow-hidden;
+  }
+}
+
 @layer components {
   /* main */
   .main-container {
-    @apply flex min-h-screen flex-1 flex-col items-center px-6 pb-10 pt-28 max-md:pb-32 sm:px-10;
+    @apply h-screen flex flex-col flex-1 items-center mt-[75px] pt-10 pb-28 px-8 lg:px-16 overflow-x-hidden overflow-y-scroll overscroll-none;
   }
 
   /* Head Text */
@@ -17,9 +23,10 @@
 @layer utilities {
   /* custom scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 3px;
-    height: 3px;
-    border-radius: 2px;
+    width: 5px;
+    height: 5px;
+    border-radius: 20px;
+    margin-right: 20px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
@@ -37,14 +44,5 @@
 
   .text-gradient {
     @apply bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-400 text-transparent bg-clip-text;
-  }
-
-  .file-input {
-    @apply block w-full text-sm text-slate-500
-      file:mr-4 file:py-2 file:px-4
-      file:rounded-full file:border-0
-      file:text-sm file:font-semibold
-      file:bg-violet-50 file:text-violet-700
-      hover:file:bg-violet-100;
   }
 }

@@ -9,8 +9,8 @@ import { useRouter } from "next/navigation";
 export default function Header() {
   const { push } = useRouter();
   return (
-    <header>
-      <nav className="bg-slate-900 absolute top-0 left-0 z-10 w-full py-4 px-8 flex justify-between items-center">
+    <header className="fixed w-full top-0 z-10">
+      <nav className="bg-slate-900 w-full py-4 px-8 flex justify-between items-center">
         {/* Logo */}
         <Link className="flex items-center gap-2" href="/">
           <Image src="/assets/logo.svg" width={40} height={40} alt="logo" />

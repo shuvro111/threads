@@ -13,7 +13,7 @@ export default function LeftSidebar() {
   const { push } = useRouter();
 
   return (
-    <section className="custom-scrollbar hidden md:flex flex-col justify-between  gap-4  overflow-auto sticky left-0 top-0 bg-slate-900 w-fit h-full min-h-screen pt-24 pb-8 md:px-4 text-white">
+    <section className="custom-scrollbar h-screen hidden md:flex flex-col justify-between  gap-4  overflow-auto sticky left-0 top-0 bg-slate-900 w-fit xl:w-1/6 pt-24 pb-8 md:px-4 text-white">
       <div className="flex flex-col gap-2">
         {sidebarLinks.map((link) => {
           return (
