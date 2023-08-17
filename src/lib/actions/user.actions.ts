@@ -3,6 +3,16 @@ import prisma from "@/lib/utils/prisma";
 import { User } from "@/lib/types/user";
 import { revalidatePath } from "next/cache";
 
+/* Get All Users */
+export async function getAllUsers() {
+  try {
+    const users = await prisma.user.findMany({});
+    return users;
+  } catch (error: any) {
+    throw new Error(`Failed to get users: ${error.message}`);
+  }
+}
+
 /* Get User */
 export async function getUser(id: string) {
   try {

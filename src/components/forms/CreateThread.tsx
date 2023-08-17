@@ -2,7 +2,6 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { userSchema } from "@/lib/validations/user";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,66 +18,56 @@ import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import Image from "next/image";
 
-import { FiImage } from "react-icons/fi";
+import { FiEdit3, FiImage } from "react-icons/fi";
 import { Textarea } from "../ui/textarea";
-import { cn, isBase64Image } from "@/lib/utils/helper.functions";
+import { isBase64Image } from "@/lib/utils/helper.functions";
 import { ChangeEvent, useState } from "react";
 
-import { AccountProfile } from "@/lib/types/user";
+import { CreateThread } from "@/lib/types/thread";
 import { useUploadThing } from "@/lib/utils/uploadthing";
-import { updateUser } from "@/lib/actions/user.actions";
-import { usePathname, useRouter } from "next/navigation";
-import { fileInputStyles, textInputStyles } from "@/lib/design/styles";
+import { useRouter } from "next/navigation";
+import { threadSchema } from "@/lib/validations/thread";
+import { fileInputStyles } from "@/lib/design/styles";
+import { createThread } from "@/lib/actions/thread.actions";
 
-export default function AccountProfile({ user, btnText }: AccountProfile) {
-  const [avatar, setAvatar] = useState<File[]>([]);
-  const pathname = usePathname();
+export default function CreateThread({ user, btnText }: CreateThread) {
+  const [media, setMedia] = useState<File[]>([]);
   const router = useRouter();
-  const { startUpload } = useUploadThing("avatar");
+  const { startUpload } = useUploadThing("media");
 
   const form = useForm({
     defaultValues: {
-      avatar: user?.avatar || "",
-      name: user?.name || "",
-      username: user?.username || "",
-      bio: user?.bio || "",
+      content: "",
+      media: "",
     },
-    resolver: zodResolver(userSchema),
+    resolver: zodResolver(threadSchema),
   });
 
   // onSubmit function
-  const onSubmit = async (values: z.infer<typeof userSchema>) => {
-    const blob = values.avatar;
+  const onSubmit = async (values: z.infer<typeof threadSchema>) => {
+    const blob = values.media;
 
-    const hasImageChanged = isBase64Image(blob);
+    const hasImageChanged = isBase64Image(String(blob));
     if (hasImageChanged) {
-      const image = await startUpload(avatar);
+      const image = await startUpload(media);
 
       if (image && image[0].fileUrl) {
-        values.avatar = image[0].fileUrl;
+        values.media = image[0].fileUrl;
       }
     }
 
-    await updateUser(
-      {
-        id: user.id,
-        name: values.name,
-        username: values.username,
-        bio: values.bio,
-        avatar: values.avatar,
-      },
-      pathname
-    );
+    await createThread({
+      author: user.id,
+      content: values.content,
+      media: values.media || null,
+      communityId: null,
+    });
 
-    if (pathname === "/profile/edit") {
-      router.back();
-    } else {
-      router.push("/");
-    }
+    router.push("/");
   };
 
-  // handleAvatar function
-  const handleAvatar = (
+  // handle media function
+  const handleMedia = (
     e: ChangeEvent<HTMLInputElement>,
     onChange: (value: string) => void
   ) => {
@@ -90,7 +79,7 @@ export default function AccountProfile({ user, btnText }: AccountProfile) {
       //file validation
       if (!["image/png", "image/jpeg"].includes(file.type)) return;
       if (file.size > 1 * 1024 * 1024) return alert("Avatar must be under 1mb");
-      setAvatar(Array.from(e.target.files));
+      setMedia(Array.from(e.target.files));
 
       fileReader.onloadend = async (event) => {
         event.target?.result && onChange(event.target.result.toString());
@@ -104,9 +93,9 @@ export default function AccountProfile({ user, btnText }: AccountProfile) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="avatar"
+          name="media"
           render={({ field }) => (
-            <FormItem className="">
+            <FormItem className="space-y-8">
               <FormLabel>
                 {field.value ? (
                   <Image
@@ -114,11 +103,11 @@ export default function AccountProfile({ user, btnText }: AccountProfile) {
                     alt="avatar"
                     width={80}
                     height={80}
-                    className="w-20 h-20 object-cover rounded-full"
+                    className="w-20 h-20 object-cover rounded-md"
                     blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAU"
                   />
                 ) : (
-                  <div className="bg-slate-800 p-6 w-fit flex justify-center items-center rounded-full">
+                  <div className="bg-slate-800 p-6 w-fit flex justify-center items-center rounded-md">
                     <FiImage className="text-4xl text-slate-500 font-thin" />
                   </div>
                 )}
@@ -130,62 +119,47 @@ export default function AccountProfile({ user, btnText }: AccountProfile) {
                   accept="image/png, image/jpeg"
                   className={fileInputStyles}
                   onChange={(e) => {
-                    handleAvatar(e, field.onChange);
+                    handleMedia(e, field.onChange);
                   }}
                 />
               </FormControl>
               <FormDescription>
-                Upload your avatar, must be a png or jpg under 1mb
+                Upload a image to your thread (optional), must be a png or jpeg
+                under 1mb
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
-          name="name"
+          name="content"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Threads"
-                  {...field}
-                  className={textInputStyles}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="@threads"
-                  {...field}
-                  className={textInputStyles}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="bio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bio</FormLabel>
+              <FormLabel>
+                <div className="flex gap-2 items-center">
+                  <Image
+                    src={user?.avatar}
+                    width={48}
+                    height={48}
+                    alt="user"
+                    className="w-12 h-12 rounded-full"
+                  />
+                  <div className="flex flex-col gap-1">
+                    <span className="text-slate-200">{user?.name}</span>
+                    <span className="text-slate-400">@{user?.username}</span>
+                  </div>
+                </div>
+                <p className="mt-8 text-emerald-400 text-lg flex items-center gap-2">
+                  Start a thread <FiEdit3 />
+                </p>
+              </FormLabel>
               <FormControl>
                 <Textarea
                   rows={8}
-                  placeholder="Enter Your Bio"
-                  className={cn(textInputStyles, "h-full resize-none")}
+                  placeholder="What's on your mind?"
+                  className="resize-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:ring-offset-0 background-transparent border-0 rounded-none border-l border-slate-700 px-8 py-4 text-lg font-light text-slate-300"
                   {...field}
                 />
               </FormControl>

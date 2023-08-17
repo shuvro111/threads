@@ -43,10 +43,11 @@ model Community {
 model Thread {
   id        Int      @id @default(autoincrement())
   content   String?
+  media     String?
   author    User     @relation(fields: [authorId], references: [id])
   authorId  String
-  community Community @relation(fields: [communityId], references: [id])
-  communityId Int
+  community Community? @relation(fields: [communityId], references: [id])
+  communityId Int?
   parent    Thread?  @relation("ThreadChildren", fields: [parentId], references: [id])
   parentId  Int?
   children  Thread[] @relation("ThreadChildren")

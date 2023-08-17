@@ -10,3 +10,10 @@ export interface User {
   bio: string;
   avatar: string;
 }
+
+export interface UserCard {
+  userId: string;
+  username: string;
+  name: string;
+  avatar: string;
+}

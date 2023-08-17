@@ -34,7 +34,9 @@ export default function RootLayout({
           <Header />
           <main className="flex">
             <LeftSidebar />
-            <Feed>{children}</Feed>
+            <section className="main-container custom-scrollbar">
+              {children}
+            </section>
             <RightSidebar />
           </main>
           <Footer />
