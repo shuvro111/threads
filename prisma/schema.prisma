@@ -18,6 +18,7 @@ model User {
   name      String
   username  String   @unique
   threads     Thread[]
+  likedThreads Thread[] @relation("ThreadLikes")
   bio   String?
   communities Community[]
   onboardingStatus Boolean @default(false)
@@ -48,9 +49,11 @@ model Thread {
   authorId  String
   community Community? @relation(fields: [communityId], references: [id])
   communityId Int?
-  parent    Thread?  @relation("ThreadChildren", fields: [parentId], references: [id])
+  likedBy    User[]   @relation("ThreadLikes")
+  parent    Thread?  @relation("ThreadChildren", fields: [parentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   parentId  Int?
   children  Thread[] @relation("ThreadChildren")
+  isRepost  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
