@@ -1,5 +1,5 @@
 import {
-  FiHeart,
+  FiBell,
   FiHome,
   FiPlusCircle,
   FiSearch,
@@ -25,9 +25,9 @@ export const sidebarLinks: sidebarLink[] = [
     label: "Search",
   },
   {
-    icon: <FiHeart />,
-    route: "/activity",
-    label: "Activity",
+    icon: <FiBell />,
+    route: "/notifications",
+    label: "Notifications",
   },
   {
     icon: <FiPlusCircle />,
