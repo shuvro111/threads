@@ -14,8 +14,6 @@ export default async function ProfilePage({
 }) {
   const { threads, comments } = await getThreadsByUserId(String(params.id));
 
-  console.log(threads);
-
   return (
     <div className="w-full">
       <div className="flex flex-col mb-8">
@@ -83,7 +81,9 @@ export default async function ProfilePage({
               <ThreadCard
                 key={thread.id}
                 id={thread.id}
+                currentUserId={params.id}
                 author={thread.author as User}
+                likedBy={thread.likedBy as User[]}
                 communityId={thread.communityId}
                 content={String(thread.content)}
                 createdAt={thread.createdAt}
@@ -102,7 +102,9 @@ export default async function ProfilePage({
             >
               <ThreadCard
                 id={comment.id}
+                currentUserId={params.id}
                 author={comment.author as User}
+                likedBy={comment.likedBy as User[]}
                 communityId={comment.communityId}
                 content={String(comment.content)}
                 createdAt={comment.createdAt}

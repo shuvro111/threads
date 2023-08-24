@@ -9,31 +9,38 @@ import Image from "next/image";
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getUser } from "@/lib/actions/user.actions";
+import { redirect } from "next/navigation";
 
 export default async function ProfilePage() {
   const user = await currentUser();
+
+  const userInfo = await getUser(String(user?.id));
+  if (!userInfo?.onboardingStatus) {
+    redirect("/onboarding");
+  }
 
   const { threads, comments } = await getThreadsByUserId(String(user?.id));
 
   return (
     <div className="w-full">
-      <div className="flex justify-between">
-        <div className="flex flex-col mb-8">
+      <div className="w-full flex justify-between">
+        <div className="flex-1 flex flex-col mb-8">
           <Image
-            src={String(threads[0].author.avatar)}
+            src={String(userInfo?.avatar)}
             width={100}
             height={100}
-            alt={String(threads[0].author.name)}
+            alt={String(userInfo?.name)}
             className="w-28 h-w-28 object-cover rounded-full"
           />
           <h1 className="text-white text-2xl font-semibold mt-4 leading-none">
-            {String(threads[0].author.name)}
+            {String(userInfo?.name)}
           </h1>
-          <span className="text-slate-400">@{threads[0].author.username}</span>
-          <h4 className="text-slate-300 text-lg font-medium border-b border-slate-800 mt-6 mb-4 pb-2 leading-none">
+          <span className="text-slate-400">@{userInfo?.username}</span>
+          <h4 className="w-full text-slate-300 text-lg font-medium border-b border-slate-800 mt-6 mb-4 pb-2 leading-none">
             Bio
           </h4>
-          <p className="text-slate-400">{threads[0].author.bio}</p>
+          <p className="text-slate-400">{userInfo?.bio}</p>
         </div>
 
         <Link href="/profile/edit">
@@ -89,46 +96,64 @@ export default async function ProfilePage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="threads" className="mt-12">
-          <>
-            {threads.map((thread) => (
-              <ThreadCard
-                key={thread.id}
-                id={thread.id}
-                currentUserId={String(user?.id)}
-                author={thread.author as User}
-                communityId={thread.communityId}
-                content={String(thread.content)}
-                createdAt={thread.createdAt}
-                media={String(thread.media)}
-                userInfo={thread.author as User}
-                child={thread.children}
-              />
-            ))}
-          </>
+          {threads.length > 0 ? (
+            <>
+              {threads.map((thread) => (
+                <ThreadCard
+                  likedBy={thread?.likedBy as User[]}
+                  key={thread.id}
+                  id={thread.id}
+                  currentUserId={String(user?.id)}
+                  author={thread.author as User}
+                  communityId={thread.communityId}
+                  content={String(thread.content)}
+                  createdAt={thread.createdAt}
+                  media={String(thread.media)}
+                  userInfo={thread.author as User}
+                  child={thread.children}
+                />
+              ))}
+            </>
+          ) : (
+            <h1 className="text-slate-400 text-2xl font-semibold mb-5">
+              No threads found
+            </h1>
+          )}
         </TabsContent>
         <TabsContent value="comments" className="flex flex-col gap-12  mt-12">
-          {comments.map((comment) => (
-            <div
-              className="p-8 pl-0 bg-slate-900 rounded-lg shadow-md"
-              key={comment.id}
-            >
-              <ThreadCard
-                id={comment.id}
-                currentUserId={String(user?.id)}
-                author={comment.author as User}
-                communityId={comment.communityId}
-                content={String(comment.content)}
-                createdAt={comment.createdAt}
-                media={String(comment.media)}
-                userInfo={comment.author as User}
-                child={comment.children}
-                isComment
-              />
-            </div>
-          ))}
+          {comments.length > 0 ? (
+            <>
+              {comments.map((comment) => (
+                <div
+                  className="p-8 pl-0 bg-slate-900 rounded-lg shadow-md"
+                  key={comment.id}
+                >
+                  <ThreadCard
+                    likedBy={comment?.likedBy as User[]}
+                    id={comment.id}
+                    currentUserId={String(user?.id)}
+                    author={comment.author as User}
+                    communityId={comment.communityId}
+                    content={String(comment.content)}
+                    createdAt={comment.createdAt}
+                    media={String(comment.media)}
+                    userInfo={comment.author as User}
+                    child={comment.children}
+                    isComment
+                  />
+                </div>
+              ))}
+            </>
+          ) : (
+            <h1 className="text-slate-400 text-2xl font-semibold mb-5">
+              No comments found
+            </h1>
+          )}
         </TabsContent>
         <TabsContent value="tagged">
-          <h1 className="text-white text-2xl font-semibold mb-5">Tagged</h1>
+          <h1 className="text-slate-400 text-2xl font-semibold mb-5">
+            Coming Soon...
+          </h1>
         </TabsContent>
       </Tabs>
     </div>
