@@ -11,7 +11,7 @@ import {
 
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils/helper.functions";
+import { cn, getIsLikedByUser } from "@/lib/utils/helper.functions";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 import {
@@ -24,6 +24,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
+import {
+  deleteThread,
+  repostThread,
+  toggleLike,
+} from "@/lib/actions/thread.actions";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function ThreadCard({
   id,
@@ -33,8 +40,38 @@ export default function ThreadCard({
   media,
   createdAt,
   isComment,
+  likedBy,
   child,
 }: ThreadCard) {
+  const router = useRouter();
+
+  const [likedByCurrentUser, setLikedByCurrentUser] = useState(
+    getIsLikedByUser(likedBy, currentUserId)
+  );
+
+  const handleDelete = (id: number) => async () => {
+    await deleteThread(id).then(() => {
+      router.refresh();
+    });
+  };
+
+  const handleToggleLike = (id: number) => async () => {
+    setLikedByCurrentUser(!likedByCurrentUser);
+    await toggleLike(id, currentUserId, likedByCurrentUser)
+      .then(() => {
+        router.refresh();
+      })
+      .catch(() => {
+        setLikedByCurrentUser(!likedByCurrentUser);
+      });
+  };
+
+  const handleRepost = (id: number, currentUserId: string) => async () => {
+    await repostThread(id, currentUserId).then(() => {
+      router.refresh();
+    });
+  };
+
   return (
     <div
       className={cn("flex flex-col justify-between w-full text-white", {
@@ -42,18 +79,30 @@ export default function ThreadCard({
         "ml-8": isComment,
       })}
     >
-      <div className="flex items-center gap-2">
-        <Image
-          src={author.avatar}
-          width={48}
-          height={48}
-          alt="thread-author"
-          className="w-15 h-15 rounded-full"
-        />
-        <div className="flex flex-col">
-          <span className="font-semibold">{author.name}</span>
-          <span className="text-sm text-slate-400">@{author.username}</span>
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Image
+            src={author.avatar}
+            width={48}
+            height={48}
+            alt="thread-author"
+            className="w-15 h-15 rounded-full"
+          />
+          <div className="flex flex-col">
+            <span className="font-semibold">{author.name}</span>
+            <span className="text-sm text-slate-400">@{author.username}</span>
+          </div>
         </div>
+        {author.id === currentUserId ? (
+          <Link href={`/edit-thread/${id}`}>
+            <Button
+              variant="secondary"
+              className="ml-auto bg-transparent text-emerald-400 hover:bg-emerald-400 hover:text-slate-900 border rounded-md border-emerald-400"
+            >
+              Edit Thread
+            </Button>
+          </Link>
+        ) : null}
       </div>
       <article className="flex flex-col gap-8 text-slate-300 text-lg font-light leading-relaxed  border-l border-slate-700 py-2 px-8 ml-6 my-6">
         {content}
@@ -71,18 +120,54 @@ export default function ThreadCard({
         ) : null}
       </article>
       <div className="flex flex-row items-center mt-4 px-4 gap-4 text-slate-400">
-        <span className="text-xl hover:text-white transition cursor-pointer">
-          <FiHeart />
-        </span>
+        <button
+          className={cn("text-xl hover:text-white transition cursor-pointer", {
+            "text-emerald-400 hover:text-emerald-400": likedByCurrentUser,
+            "disabled cursor-not-allowed": currentUserId === author.id,
+          })}
+          disabled={currentUserId === author.id}
+          onClick={handleToggleLike(id)}
+        >
+          <FiHeart fill={likedByCurrentUser && "rgb(52 211 153)"} />
+        </button>
         <Link
           href={`/thread/${id}`}
           className="text-xl hover:text-white transition cursor-pointer"
         >
           <FiMessageCircle />
         </Link>
-        <span className="text-xl hover:text-white transition cursor-pointer">
-          <FiRepeat />
-        </span>
+        {author.id !== currentUserId ? (
+          <span className="text-xl hover:text-white transition cursor-pointer">
+            <Dialog>
+              <DialogTrigger asChild>
+                <FiRepeat />
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Are you sure?</DialogTitle>
+                  <DialogDescription>
+                    Do you want to repost this thread?
+                  </DialogDescription>
+                </DialogHeader>
+
+                <DialogFooter>
+                  <DialogPrimitive.Close asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </DialogPrimitive.Close>
+                  <DialogPrimitive.Close asChild>
+                    <Button
+                      variant="brand"
+                      type="submit"
+                      onClick={handleRepost(id, currentUserId)}
+                    >
+                      Repost
+                    </Button>
+                  </DialogPrimitive.Close>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </span>
+        ) : null}
         <span className="text-xl hover:text-white transition cursor-pointer">
           <FiSend />
         </span>
@@ -105,9 +190,15 @@ export default function ThreadCard({
                   <DialogPrimitive.Close asChild>
                     <Button variant="outline">Cancel</Button>
                   </DialogPrimitive.Close>
-                  <Button variant="destructive" type="submit">
-                    Delete
-                  </Button>
+                  <DialogPrimitive.Close asChild>
+                    <Button
+                      variant="destructive"
+                      type="submit"
+                      onClick={handleDelete(id)}
+                    >
+                      Delete
+                    </Button>
+                  </DialogPrimitive.Close>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

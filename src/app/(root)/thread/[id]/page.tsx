@@ -1,7 +1,4 @@
-import {
-  getThreadById,
-  getThreadWithInfiniteNestedChildren,
-} from "@/lib/actions/thread.actions";
+import { getThreadById } from "@/lib/actions/thread.actions";
 import ThreadCard from "@/components/cards/ThreadCard";
 import Comment from "@/components/forms/Comment";
 import { User } from "@/lib/types/user";
@@ -13,20 +10,16 @@ export default async function Page({ params }: { params: { id: string } }) {
   const thread = await getThreadById(Number(params.id));
   if (!thread) return;
 
-  console.log(thread);
-
-  // await getThreadWithInfiniteNestedChildren(2).then((res) => {
-  //   // console.log(res);
-  // });
-
   const userInfo = await getUser(String(user?.id));
   if (!userInfo) return;
   return (
     <div className="w-full flex flex-col gap-12">
       <ThreadCard
+        currentUserId={userInfo.id}
         key={thread.id}
         id={thread.id}
         author={thread.author as User}
+        likedBy={thread.likedBy as User[]}
         communityId={thread.communityId}
         content={String(thread.content)}
         createdAt={thread.createdAt}
@@ -43,9 +36,11 @@ export default async function Page({ params }: { params: { id: string } }) {
       <div className="flex flex-col gap-12">
         {thread.children.map((comment) => (
           <ThreadCard
+            currentUserId={userInfo.id}
             key={comment.id}
             id={comment.id}
             author={comment.author as User}
+            likedBy={comment.likedBy as User[]}
             communityId={comment.communityId}
             content={String(comment.content)}
             createdAt={comment.createdAt}

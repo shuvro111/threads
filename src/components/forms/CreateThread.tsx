@@ -28,17 +28,24 @@ import { useUploadThing } from "@/lib/utils/uploadthing";
 import { useRouter } from "next/navigation";
 import { threadSchema } from "@/lib/validations/thread";
 import { fileInputStyles } from "@/lib/design/styles";
-import { createThread } from "@/lib/actions/thread.actions";
+import { createThread, updateThread } from "@/lib/actions/thread.actions";
 
-export default function CreateThread({ user, btnText }: CreateThread) {
+export default function CreateThread({
+  user,
+  btnText,
+  currentThread,
+}: CreateThread) {
   const [media, setMedia] = useState<File[]>([]);
   const router = useRouter();
   const { startUpload } = useUploadThing("media");
 
   const form = useForm({
     defaultValues: {
-      content: "",
-      media: "",
+      content: currentThread?.content || "",
+      media:
+        (currentThread && currentThread?.media === "null"
+          ? ""
+          : currentThread?.media) || "",
     },
     resolver: zodResolver(threadSchema),
   });
@@ -56,12 +63,22 @@ export default function CreateThread({ user, btnText }: CreateThread) {
       }
     }
 
-    await createThread({
-      author: user.id,
-      content: values.content,
-      media: values.media || null,
-      communityId: null,
-    });
+    if (currentThread) {
+      await updateThread({
+        id: currentThread.id,
+        author: user.id,
+        content: values.content,
+        media: values.media || null,
+        communityId: null,
+      });
+    } else {
+      await createThread({
+        author: user.id,
+        content: values.content,
+        media: values.media || null,
+        communityId: null,
+      });
+    }
 
     router.push("/");
   };
@@ -172,7 +189,7 @@ export default function CreateThread({ user, btnText }: CreateThread) {
           type="submit"
           className="capitalize w-full py-6"
         >
-          {btnText}
+          {currentThread ? "Update Thread" : btnText}
         </Button>
       </form>
     </Form>
