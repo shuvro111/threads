@@ -1,6 +1,7 @@
 import { User } from "./user";
 
 export interface Thread {
+  id?: number;
   author: string;
   content: string;
   media: string | null;
@@ -13,7 +14,9 @@ export interface ThreadCard {
   author: User;
   content: string;
   media: string;
+  likedBy: User[];
   communityId: number | null;
+  parent?: ThreadCard;
   createdAt: Date;
   userInfo?: User;
   isComment?: boolean;
@@ -23,4 +26,5 @@ export interface ThreadCard {
 export interface CreateThread {
   user: User;
   btnText: string;
+  currentThread?: Thread;
 }
