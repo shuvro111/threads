@@ -4,7 +4,7 @@ import SuggestedUserCard from "@/components/cards/SuggestedUserCard";
 
 export default async function RightSidebar() {
   const user = await currentUser();
-  const suggestedUsers = await getSuggestedUsers(String(user?.id));
+  const suggestedUsers = await getSuggestedUsers(String(user?.id), "");
 
   return (
     <section className="hidden w-1/4 xl:flex xl:flex-col gap-4 sticky top-0 right-0 h-screen overflow-auto bg-slate-900 text-white justify-start pt-[75px] px-12">
